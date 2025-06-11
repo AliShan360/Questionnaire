@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disinformation Recognition Survey</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Roboto', sans-serif; background: #f2f4f8; margin:0; padding:0; display:flex; justify-content:center; }
+    .container { background: #fff; margin:40px; padding:30px 40px; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.1); width:90%; max-width:700px; }
+    h2, h3 { text-align:center; color:#222; }
+    .question { font-size:18px; margin-bottom:20px; }
+    .input-field { width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px; font-size:16px; }
+    button { padding:12px 30px; margin:10px; font-size:16px; border:none; border-radius:5px; cursor:pointer; }
+    .btn-red { background:#e74c3c; color:#fff; }
+    .btn-blue { background:#3498db; color:#fff; }
+    .center { text-align:center; }
+    .hidden { display:none; }
+    img { max-width:100%; border-radius:5px; margin:10px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Consent -->
+  <div class="container" id="consent">
+    <h2>Consent Form</h2>
+    <p>You are being asked to participate in a survey on information accuracy. Your responses and timing will be recorded. All data is anonymous. Participation is voluntary.</p>
+    <div class="center">
+      <button class="btn btn-red" onclick="goToDemographics()">Next</button>
+    </div>
+  </div>
+
+  <!-- Demographics -->
+  <div class="container hidden" id="demographics">
+    <h3>Demographic Information</h3>
+    <input class="input-field" id="name"    placeholder="Full Name">
+    <input class="input-field" id="email"   type="email" placeholder="Email Address">
+    <input class="input-field" id="dob"     placeholder="Date of Birth (DD/MM/YYYY)">
+    <select class="input-field" id="gender">
+      <option value="">Select Gender</option>
+      <option>Male</option><option>Female</option><option>Other</option>
+    </select>
+    <div class="center">
+      <button class="btn btn-red" onclick="startSurvey()">Next</button>
+    </div>
+  </div>
+
+  <!-- Questionnaire -->
+  <div class="container hidden" id="questionnaire">
+    <h3>Question <span id="qnum">1</span> of 30</h3>
+    <div class="question" id="qtext"></div>
+    <div class="center" id="options"></div>
+  </div>
+
+  <!-- Thank You -->
+  <div class="container hidden" id="thankyou">
+    <h2>Thank you!</h2>
+    <p>Your responses have been submitted.</p>
+  </div>
+
+<script>
+  const stimuli = [
+    {type:'text', content:"The 2024 general elections were postponed to install an interim military government."},
+    {type:'text', content:"COVID-19 vaccines cause infertility and are used to microchip citizens."},
+    {type:'text', content:"The Parliament passed a bill making climate change a national security issue."},
+    {type:'text', content:"Doctors in Lahore prescribe expensive medicines for commission."},
+    {type:'text', content:"Zakat is now being sent directly to international NGOs instead of local use."},
+    {type:'text', content:"The moon sighting for Eid is now handled entirely by AI algorithms in Pakistan."},
+    {type:'text', content:"The new Hajj quota allows only vaccinated individuals under 40 to apply."},
+    {type:'text', content:"Consuming energy drinks after sunset breaks the fast during Ramadan."},
+    {type:'text', content:"A national law bans jeans in public places in Pakistan after 8 PM."},
+    {type:'text', content:"Pakistan's president declared yoga to be un-Islamic in a televised address."},
+    {type:'text', content:"The Prime Minister promised to plant 10 billion trees across Pakistan."},
+    {type:'text', content:"The Punjab Assembly declared sugar-free drinks illegal due to health myths."},
+    {type:'text', content:"Pakistan passed a resolution to ban TikTok permanently from all provinces."},
+    {type:'text', content:"Every mosque is now required to have solar panels installed by 2026."},
+    {type:'text', content:"The national anthem was changed to include verses from Sufi poets."},
+    {type:'text', content:"A Lahore-based gym chain is offering free memberships for prayer attendance."},
+    {type:'text', content:"Imams are now issued digital tablets to track Friday sermon feedback."},
+    {type:'text', content:"Pakistan declared Friday a universal day of rest replacing Sunday."},
+    {type:'text', content:"Women can now only shop during female-only hours, 10am–2pm."},
+    {type:'text', content:"Pakistan has made wearing white mandatory for government employees on Fridays."},
+    {type:'text', content:"The education ministry introduced weekly meditation classes in universities."},
+    {type:'text', content:"A social media influencer has been made the Minister for Youth Affairs."},
+    {type:'text', content:"Eating beef after sunset increases aggression, claims new Punjab study."},
+    {type:'text', content:"A Pakistani soap brand is now certified to prevent COVID-19."},
+    {type:'text', content:"Private weddings are being taxed if the guest list exceeds 200 people."},
+    {type:'text', content:"Pakistan bans public dancing at all university events."},
+    {type:'text', content:"Every citizen will be assigned a state-mandated mental health counselor."},
+    {type:'text', content:"All religious holidays must be streamed online via government portals."},
+    {type:'text', content:"Friday sermons will now include official news briefings on inflation."},
+    {type:'image', content:"3.jpg"}
+  ];
+
+  let respondentID = 'usr_' + Math.random().toString(36).substr(2,6),
+      current = 0, startQ = 0, responses = [], demo = {};
+
+  function goToDemographics(){
+    document.getElementById('consent').classList.add('hidden');
+    document.getElementById('demographics').classList.remove('hidden');
+  }
+
+  function startSurvey(){
+    demo = {
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      dob: document.getElementById('dob').value.trim(),
+      gender: document.getElementById('gender').value
+    };
+    if (!demo.name || !demo.email || !demo.dob || !demo.gender) return alert('Please fill all fields.');
+    document.getElementById('demographics').classList.add('hidden');
+    document.getElementById('questionnaire').classList.remove('hidden');
+    showQuestion();
+  }
+
+  function showQuestion(){
+    const st = stimuli[current];
+    document.getElementById('qnum').innerText = current + 1;
+    document.getElementById('qtext').innerHTML = st.type === 'image' ? `<img src="${st.content}">` : st.content;
+    const options = st.type === 'image' ? ['Like', 'Share', 'Fact-Check'] : ['Fact', 'False'];
+    const optDiv = document.getElementById('options');
+    optDiv.innerHTML = '';
+    options.forEach(label => {
+      const b = document.createElement('button');
+      b.className = 'btn btn-blue';
+      b.innerText = label;
+      b.onclick = () => record(label);
+      optDiv.appendChild(b);
+    });
+    startQ = Date.now();
+  }
+
+  function record(choice){
+    const t = (Date.now() - startQ) / 1000;
+    responses.push({
+      respondentID,
+      date: new Date().toLocaleDateString(),
+      questionNum: current + 1,
+      stimuli: stimuli[current].content,
+      response: choice,
+      responseTime: t.toFixed(2)
+    });
+    current++;
+    if(current < stimuli.length) showQuestion();
+    else finish();
+  }
+
+  function finish(){
+    document.getElementById('questionnaire').classList.add('hidden');
+    document.getElementById('thankyou').classList.remove('hidden');
+    fetch('https://script.google.com/macros/s/AKfycbzD824-rlCcH6Mm_FEzxLqpD7XEDWlom--ZVRFgoQedS3aXwrdqG8bU_PzhPGZPBDmQmw/exec', {
+      method:'POST',
+      mode:'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        demographics: demo,
+        responses: responses
+      })
+    });
+  }
+</script>
+</body>
+</html>
